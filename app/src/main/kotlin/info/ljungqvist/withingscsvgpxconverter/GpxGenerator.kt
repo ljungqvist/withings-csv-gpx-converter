@@ -3,37 +3,37 @@ package info.ljungqvist.withingscsvgpxconverter
 import java.util.*
 
 fun generateGpx(
-    activities: List<Activity>?,
-    altitudes: List<Value>?,
-    hrs: List<Value>?,
-    latitudes: List<Value>?,
-    longitudes: List<Value>?,
-): List<List<GpxPoint>>? =
-    if (activities != null && altitudes != null && hrs != null && latitudes != null && longitudes != null) {
-        generateGpxInternal(activities, altitudes, hrs, latitudes, longitudes)
-    } else {
-        println("ERROR activities: ${activities != null}, altitudes: ${altitudes != null}, hrs: ${hrs != null}, latitudes: ${latitudes != null}, longitudes: ${longitudes != null}")
-        null
-    }
+        activities: List<Activity>?,
+        altitudes: List<Value>?,
+        hrs: List<Value>?,
+        latitudes: List<Value>?,
+        longitudes: List<Value>?,
+): List<ParsedActivity>? =
+        if (activities != null && altitudes != null && hrs != null && latitudes != null && longitudes != null) {
+            generateGpxInternal(activities, altitudes, hrs, latitudes, longitudes)
+        } else {
+            println("ERROR activities: ${activities != null}, altitudes: ${altitudes != null}, hrs: ${hrs != null}, latitudes: ${latitudes != null}, longitudes: ${longitudes != null}")
+            null
+        }
 
 private fun generateGpxInternal(
-    activities: List<Activity>,
-    altitudes: List<Value>,
-    hrs: List<Value>,
-    latitudes: List<Value>,
-    longitudes: List<Value>,
-): List<List<GpxPoint>> =
-    activities.map { a ->
-        generateActivity(a, altitudes, hrs, latitudes, longitudes)
-    }
+        activities: List<Activity>,
+        altitudes: List<Value>,
+        hrs: List<Value>,
+        latitudes: List<Value>,
+        longitudes: List<Value>,
+): List<ParsedActivity> =
+        activities.map { a ->
+            generateActivity(a, altitudes, hrs, latitudes, longitudes)
+        }
 
 private fun generateActivity(
-    activity: Activity,
-    altitudes: List<Value>,
-    hrs: List<Value>,
-    latitudes: List<Value>,
-    longitudes: List<Value>,
-): List<GpxPoint> {
+        activity: Activity,
+        altitudes: List<Value>,
+        hrs: List<Value>,
+        latitudes: List<Value>,
+        longitudes: List<Value>,
+): ParsedActivity {
     var date = activity.start
 
     println("ALT ${altitudes[0]}")
@@ -48,13 +48,13 @@ private fun generateActivity(
     val iterators = listOf(altitudesIterator, hrIterator, latitudesIterator, longitudesIterator)
 
     val res = mutableListOf(
-        GpxPoint(
-            date,
-            latitudesIterator.valueAt(date),
-            longitudesIterator.valueAt(date),
-            altitudesIterator.valueAt(date),
-            hrIterator.valueAt(date).toInt()
-        )
+            GpxPoint(
+                    date,
+                    latitudesIterator.valueAt(date),
+                    longitudesIterator.valueAt(date),
+                    altitudesIterator.valueAt(date),
+                    hrIterator.valueAt(date).toInt()
+            )
     )
 
     while (date < activity.end) {
@@ -67,22 +67,22 @@ private fun generateActivity(
             }
         }
         res += GpxPoint(
-            date,
-            latitudesIterator.valueAt(date),
-            longitudesIterator.valueAt(date),
-            altitudesIterator.valueAt(date),
-            hrIterator.valueAt(date).toInt()
+                date,
+                latitudesIterator.valueAt(date),
+                longitudesIterator.valueAt(date),
+                altitudesIterator.valueAt(date),
+                hrIterator.valueAt(date).toInt()
         )
     }
 
-    return res
+    return ParsedActivity(res, activity.type);
 
 }
 
 private abstract class InterpolatingIterator<T, V>(
-    private val list: List<T>,
-    startDate: Date,
-    private val tag: String
+        private val list: List<T>,
+        startDate: Date,
+        private val tag: String
 ) {
     protected abstract fun start(t: T): Date
     protected abstract fun value(t: T): V
@@ -91,12 +91,12 @@ private abstract class InterpolatingIterator<T, V>(
     protected abstract infix fun V.t(d: Double): V
 
     private var lowerId = list.binarySearch { start(it).compareTo(startDate) }
-        .let { index ->
-            println(tag)
-            println(startDate)
-            println(start(list[0]))
-            if (index < 0) -index - 2 else index
-        }
+            .let { index ->
+                println(tag)
+                println(startDate)
+                println(start(list[0]))
+                if (index < 0) -index - 2 else index
+            }
 
     var lower = list[lowerId]
         private set
@@ -128,7 +128,7 @@ private abstract class InterpolatingIterator<T, V>(
 }
 
 private class ValueIterator(list: List<Value>, startDate: Date, tag: String) :
-    InterpolatingIterator<Value, Double>(list, startDate, tag) {
+        InterpolatingIterator<Value, Double>(list, startDate, tag) {
     override fun start(t: Value): Date = t.start
     override fun value(t: Value): Double = t.value
     override fun Double.p(t: Double): Double = this + t
@@ -137,9 +137,14 @@ private class ValueIterator(list: List<Value>, startDate: Date, tag: String) :
 }
 
 data class GpxPoint(
-    val date: Date,
-    val lat: Double,
-    val lon: Double,
-    val ele: Double,
-    val hr: Int
+        val date: Date,
+        val lat: Double,
+        val lon: Double,
+        val ele: Double,
+        val hr: Int,
+)
+
+data class ParsedActivity(
+        val points: List<GpxPoint>,
+        val type: String,
 )

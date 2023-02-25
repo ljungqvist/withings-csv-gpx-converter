@@ -48,7 +48,7 @@ fun main(args: Array<String>) {
 
     val outDir = File(outputDir)
     generateGpx(activities, altitudes, hrs, latitudes, longitudes)?.forEach {
-        writeGpx(PrintStream(File(outDir, "${fileNameDataFormat.format(it.first().date)}.gpx")), it)
+        writeGpx(PrintStream(File(outDir, "${fileNameDataFormat.format(it.points.first().date)}-${it.type}.gpx")), it.points)
     }
 
 }
