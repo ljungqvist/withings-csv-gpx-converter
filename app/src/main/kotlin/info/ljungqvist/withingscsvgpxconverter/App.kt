@@ -11,11 +11,6 @@ import java.text.SimpleDateFormat
 import java.util.*
 import java.util.zip.ZipInputStream
 
-class App {
-    fun greeting(value: String): String =
-        "Hello World! $value"
-}
-
 fun main(args: Array<String>) {
     val inputFileName = args[0]
     val outputDir = args[1]
@@ -33,12 +28,16 @@ fun main(args: Array<String>) {
             when (name) {
                 ACTIVITIES_FILE_NAME ->
                     activities = readActivities(zipIn)
+
                 RAW_TRACKER_ALTITUDE_FILE_NAME ->
                     altitudes = readValues(zipIn)
+
                 RAW_TRACKER_HR_FILE_NAME ->
                     hrs = readValues(zipIn)
+
                 RAW_TRACKER_LATITUDE_FILE_NAME ->
                     latitudes = readValues(zipIn)
+
                 RAW_TRACKER_LONGITUDE_FILE_NAME ->
                     longitudes = readValues(zipIn)
             }
@@ -47,9 +46,17 @@ fun main(args: Array<String>) {
     }
 
     val outDir = File(outputDir)
-    generateGpx(activities, altitudes, hrs, latitudes, longitudes)?.forEach {
-        writeGpx(PrintStream(File(outDir, "${fileNameDataFormat.format(it.points.first().date)}-${it.type}.gpx")), it.points)
-    }
+    val activitiesWritten =
+    generateGpx(activities, altitudes, hrs, latitudes, longitudes)
+            ?.map {
+                val filename = "${fileNameDataFormat.format(it.points.first().date)}_${it.type}.gpx"
+                writeGpx(PrintStream(File(outDir, filename)), it.points)
+                filename
+            }
+            ?.count()
+            ?: 0
+
+    println("$activitiesWritten activities written successfully")
 
 }
 
@@ -63,5 +70,5 @@ val dataFormat: DateFormat
     get() = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX")
 
 val fileNameDataFormat: DateFormat
-    get() = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
-        .apply { timeZone = TimeZone.getTimeZone("GMT") }
+    get() = SimpleDateFormat("yyyy-MM-dd'T'HH.mm.ss")
+            .apply { timeZone = TimeZone.getTimeZone("GMT") }

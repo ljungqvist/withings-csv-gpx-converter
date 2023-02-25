@@ -36,11 +36,6 @@ private fun generateActivity(
 ): ParsedActivity {
     var date = activity.start
 
-    println("ALT ${altitudes[0]}")
-    println("HR ${hrs[0]}")
-    println("LATITUDES ${latitudes[0]}")
-    println("LONGITUDES ${longitudes[0]}")
-
     val altitudesIterator = ValueIterator(altitudes, date, "ALT")
     val hrIterator = ValueIterator(hrs, date, "HR")
     val latitudesIterator = ValueIterator(latitudes, date, "LATITUDES")
@@ -92,9 +87,6 @@ private abstract class InterpolatingIterator<T, V>(
 
     private var lowerId = list.binarySearch { start(it).compareTo(startDate) }
             .let { index ->
-                println(tag)
-                println(startDate)
-                println(start(list[0]))
                 if (index < 0) -index - 2 else index
             }
 
