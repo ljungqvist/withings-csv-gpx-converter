@@ -50,7 +50,7 @@ fun main(args: Array<String>) {
     generateGpx(activities, altitudes, hrs, latitudes, longitudes)
             ?.map {
                 val filename = "${fileNameDataFormat.format(it.points.first().date)}_${it.type}.gpx"
-                writeGpx(PrintStream(File(outDir, filename)), it.points)
+                writeGpx(PrintStream(File(outDir, filename)), it)
                 filename
             }
             ?.count()

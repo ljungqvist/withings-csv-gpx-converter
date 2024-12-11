@@ -138,5 +138,5 @@ data class GpxPoint(
 
 data class ParsedActivity(
         val points: List<GpxPoint>,
-        val type: String,
+        val type: ActivityType,
 )
